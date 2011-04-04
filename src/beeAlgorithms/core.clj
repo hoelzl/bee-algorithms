@@ -1,4 +1,5 @@
 (ns beeAlgorithms.core
+  (:gen-class)
   (:use (incanter core stats charts)))
 
 (def $pi java.lang.Math/PI)
@@ -16,7 +17,8 @@
     (sin (- (exp scaled-x) 1))))
 
 
-;; (view (function-plot accelerated-sin-2 0 120.0))
-;; (view (function-plot accelerated-sin-3 0 120.0))
-;; (view (function-plot accelerated-sin-exp 0 120.0))
-
+(defn -main [& args]
+  (view (function-plot accelerated-sin-2 0 120.0))
+  (view (function-plot accelerated-sin-3 0 120.0))
+  (view (function-plot accelerated-sin-exp 0 120.0))
+)
