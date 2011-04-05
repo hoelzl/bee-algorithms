@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eclipse-userlibraries>
+  <library name="Maven: org.clojars.somnium:mongo-java-driver:1.1.0-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/org/clojars/somnium/mongo-java-driver/1.1.0-SNAPSHOT/mongo-java-driver-1.1.0-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: incanter:jfreechart:1.0.13-no-gnujaxp">
+    <archive path="/Users/tc/.m2/repository/incanter/jfreechart/1.0.13-no-gnujaxp/jfreechart-1.0.13-no-gnujaxp.jar" />
+  </library>
+  <library name="Maven: log4j:log4j:1.2.13">
+    <archive path="/Users/tc/.m2/repository/log4j/log4j/1.2.13/log4j-1.2.13.jar" />
+  </library>
+  <library name="Maven: org.clojars.somnium:clojure-db-object:0.1.1-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/org/clojars/somnium/clojure-db-object/0.1.1-SNAPSHOT/clojure-db-object-0.1.1-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: incanter:netlib-java:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/netlib-java/0.9.4/netlib-java-0.9.4.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-mongodb:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-mongodb/1.2.3/incanter-mongodb-1.2.3.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-io:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-io/1.2.3/incanter-io-1.2.3.jar" />
+  </library>
+  <library name="Maven: incanter:optimization:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/optimization/0.9.4/optimization-0.9.4.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-core:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-core/1.2.3/incanter-core-1.2.3.jar" />
+  </library>
+  <library name="Maven: swingrepl:swingrepl:1.0.0-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/swingrepl/swingrepl/1.0.0-SNAPSHOT/swingrepl-1.0.0-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-charts:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-charts/1.2.3/incanter-charts-1.2.3.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-excel:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-excel/1.2.3/incanter-excel-1.2.3.jar" />
+  </library>
+  <library name="Maven: incanter:parallelcolt:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/parallelcolt/0.9.4/parallelcolt-0.9.4.jar" />
+  </library>
+  <library name="Maven: incanter:incanter:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter/1.2.3/incanter-1.2.3.jar" />
+  </library>
+  <library name="Maven: org.apache.poi:poi:3.6">
+    <archive path="/Users/tc/.m2/repository/org/apache/poi/poi/3.6/poi-3.6.jar" />
+  </library>
+  <library name="Maven: incanter:csparsej:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/csparsej/0.9.4/csparsej-0.9.4.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-latex:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-latex/1.2.3/incanter-latex-1.2.3.jar" />
+  </library>
+  <library name="Maven: org.clojure:clojure-contrib:1.2.0">
+    <archive path="/Users/tc/.m2/repository/org/clojure/clojure-contrib/1.2.0/clojure-contrib-1.2.0.jar" />
+  </library>
+  <library name="Maven: commons-logging:commons-logging:1.1">
+    <archive path="/Users/tc/.m2/repository/commons-logging/commons-logging/1.1/commons-logging-1.1.jar" />
+  </library>
+  <library name="Maven: incanter:jcommon:1.0.16">
+    <archive path="/Users/tc/.m2/repository/incanter/jcommon/1.0.16/jcommon-1.0.16.jar" />
+  </library>
+  <library name="Maven: avalon-framework:avalon-framework:4.1.3">
+    <archive path="/Users/tc/.m2/repository/avalon-framework/avalon-framework/4.1.3/avalon-framework-4.1.3.jar" />
+  </library>
+  <library name="Maven: junit:junit:3.8.1">
+    <archive path="/Users/tc/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar" />
+  </library>
+  <library name="Maven: incanter:processing-core:1.1">
+    <archive path="/Users/tc/.m2/repository/incanter/processing-core/1.1/processing-core-1.1.jar" />
+  </library>
+  <library name="Maven: org.danlarkin:clojure-json:1.1-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/org/danlarkin/clojure-json/1.1-SNAPSHOT/clojure-json-1.1-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: org.clojars.bmabey:congomongo:0.1.2-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/org/clojars/bmabey/congomongo/0.1.2-SNAPSHOT/congomongo-0.1.2-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: javax.servlet:servlet-api:2.3">
+    <archive path="/Users/tc/.m2/repository/javax/servlet/servlet-api/2.3/servlet-api-2.3.jar" />
+  </library>
+  <library name="Maven: net.sf.alxa:jlatexmath:0.9.1-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/net/sf/alxa/jlatexmath/0.9.1-SNAPSHOT/jlatexmath-0.9.1-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: com.lowagie:itext:1.4">
+    <archive path="/Users/tc/.m2/repository/com/lowagie/itext/1.4/itext-1.4.jar" />
+  </library>
+  <library name="Maven: org.clojure:clojure:1.2.1">
+    <archive path="/Users/tc/.m2/repository/org/clojure/clojure/1.2.1/clojure-1.2.1.jar" />
+  </library>
+  <library name="Maven: incanter:jplasma:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/jplasma/0.9.4/jplasma-0.9.4.jar" />
+  </library>
+  <library name="Maven: logkit:logkit:1.0.1">
+    <archive path="/Users/tc/.m2/repository/logkit/logkit/1.0.1/logkit-1.0.1.jar" />
+  </library>
+  <library name="Maven: net.sf.opencsv:opencsv:2.0.1">
+    <archive path="/Users/tc/.m2/repository/net/sf/opencsv/opencsv/2.0.1/opencsv-2.0.1.jar" />
+  </library>
+  <library name="Maven: swank-clojure:swank-clojure:1.3.0-SNAPSHOT">
+    <archive path="/Users/tc/.m2/repository/swank-clojure/swank-clojure/1.3.0-SNAPSHOT/swank-clojure-1.3.0-SNAPSHOT.jar" />
+  </library>
+  <library name="Maven: incanter:arpack-combo:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/arpack-combo/0.9.4/arpack-combo-0.9.4.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-processing:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-processing/1.2.3/incanter-processing-1.2.3.jar" />
+  </library>
+  <library name="Maven: incanter:jtransforms:0.9.4">
+    <archive path="/Users/tc/.m2/repository/incanter/jtransforms/0.9.4/jtransforms-0.9.4.jar" />
+  </library>
+  <library name="Maven: jline:jline:0.9.94">
+    <archive path="/Users/tc/.m2/repository/jline/jline/0.9.94/jline-0.9.94.jar" />
+  </library>
+  <library name="Maven: incanter:incanter-pdf:1.2.3">
+    <archive path="/Users/tc/.m2/repository/incanter/incanter-pdf/1.2.3/incanter-pdf-1.2.3.jar" />
+  </library>
+</eclipse-userlibraries>
+
