@@ -3,7 +3,36 @@
   (:use (incanter core stats charts
 		  [distributions :exclude [variance mean]])))
 
+
+(def *number-of-bees* 10)
+
+(defn make-example [& {:keys [start-cooling-distribution stop-cooling-distribution
+			      number-of-bees change],
+		       :or {start-cooling-distribution (normal-distribution 2.0 1.0),
+			    stop-cooling-distribution (normal-distribution 0.0 0.1),
+			    number-of-bees *number-of-bees*,
+			    change (/ 1 *number-of-bees*)}}]
+  {:start-cooling-disribution start-cooling-distribution,
+   :stop-cooling-distribution stop-cooling-distribution,
+   :number-of-bees number-of-bees
+   :change change})
+
+(def $default-example (make-example :start-cooling-disribution (normal-distribution 1.0 0.5)
+				    :stop-cooling-distribution (normal-distribution 0.5 0.1)
+				    :number-of-bees *number-of-bees*
+				    :change (/ 1 *number-of-bees*)))
+
+(def $fixed-example (make-example :start-cooling-disribution [1.0]
+				  :stop-cooling-distribution [0.5]
+				  :number-of-bees *number-of-bees*
+				  :change (/ 1 *number-of-bees*)))
 (def $pi java.lang.Math/PI)
+
+(defn sin-1 [x]
+  (if (< x 0)
+    0.0
+    (let [scaled-x (/ x 2)]
+      (sin scaled-x))))
 
 (defn accelerated-sin-2 [x]
   (if (< x 0)
@@ -30,17 +59,14 @@
 (def external-temperature
      (make-external-temperature-fun 5.0 accelerated-sin-exp))
 
-
-(def *number-of-bees* 10)
 (def *bees* (atom []))
 
-(defn make-bees [& {:keys [start-cooling-distribution stop-cooling-distribution
-			   n change],
-		    :or {start-cooling-distribution [1.0],
-			 stop-cooling-distribution [0.0],
-			 n *number-of-bees*,
-			 change (/ 1 *number-of-bees*)}}]
-  (let [bees (for [i (range n)]
+(defn make-bees [example]
+  (let [start-cooling-distribution (:start-cooling-disribution example)
+	stop-cooling-distribution (:stop-cooling-distribution example)
+	number-of-bees (:number-of-bees example)
+	change (:change example)
+	bees (for [i (range number-of-bees)]
 	       (let [start-cooling (abs (draw start-cooling-distribution))
 		     stop-cooling (min (draw stop-cooling-distribution) (- start-cooling 0.5))
 		     start-heating (- start-cooling)
@@ -87,21 +113,21 @@
 (defn bee-actions [bees temperature]
   (sum (map #(bee-action % temperature) bees)))
 
-(defn with-delay
+(defn with-offset
   ([sequence]
      (cons (first sequence) sequence))
   ([sequence n]
      (if (zero? n)
        sequence
-       (recur (with-delay sequence) (- n 1)))))
+       (recur (with-offset sequence) (- n 1)))))
 
-(def *time-seq-step-size* 1)
+(def *time-seq-step-size* 0.1)
 
 (defn time-seq []
-  (range 0 120 *time-seq-step-size*))
+  (range 0 150 *time-seq-step-size*))
 
 (defn delta-t-seq [external-temperature-seq]
-  (map - external-temperature-seq (with-delay external-temperature-seq)))
+  (map - external-temperature-seq (with-offset external-temperature-seq)))
 
 (defn result-temperatures [current-t delta-t-env bees]
   (let [current-delta-t-env (first delta-t-env)
@@ -115,20 +141,26 @@
 		   (result-temperatures next-t new-delta-t-env bees)
 		   []))))))
 
-(defn plot-result [& {time :time, temperature :temperature,
+(defn plot-result [& {time :time, temperature :temperature, title :title,
 		      :or {time (time-seq),
-			   temperature (map external-temperature time)}}]
+			   temperature (map external-temperature time),
+			   title "Temperature Plot"}}]
   (xy-plot time temperature
+	   :title title 
 	   :x-label "Time (min)" :y-label "Temperature (°C)"))
 
-(defn -main [& args]
+(defn run-example [title example]
   (let [time (time-seq)
 	temp (map external-temperature time)
-	plot (plot-result :time time :temperature temp)
-	bees (make-bees)
+	plot (plot-result :time time :temperature temp :title title)
+	bees (make-bees example)
 	delta-t-env  (delta-t-seq temp)
 	result-temp (result-temperatures 0.0 delta-t-env bees)]
     ;; (println delta-t-env)
     ;; (println result-temp)
     (add-lines plot time result-temp)
     (view plot)))
+
+(defn -main [& args]
+  (run-example "Default Example" $default-example)
+  (run-example "Fixed Example" $fixed-example))
