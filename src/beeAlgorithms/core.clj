@@ -4,28 +4,43 @@
 		  [distributions :exclude [variance mean]])))
 
 
-(def *number-of-bees* 10)
+(def *number-of-bees* 100)
+(def *end-time* 120)
+(def *time-step* 1)
 
-(defn make-example [& {:keys [start-cooling-distribution stop-cooling-distribution
-			      number-of-bees change],
+(defn make-example [& {:keys [start-cooling-distribution
+			      stop-cooling-distribution
+			      number-of-bees
+			      delta-temp
+			      end-time
+			      time-step
+			      title],
 		       :or {start-cooling-distribution (normal-distribution 2.0 1.0),
 			    stop-cooling-distribution (normal-distribution 0.0 0.1),
 			    number-of-bees *number-of-bees*,
-			    change (/ 1 *number-of-bees*)}}]
+			    delta-temp (/ 1 *number-of-bees*)
+			    end-time *end-time*
+			    time-step *time-step*
+			    title "Unnamed Example"}}]
   {:start-cooling-disribution start-cooling-distribution,
    :stop-cooling-distribution stop-cooling-distribution,
    :number-of-bees number-of-bees
-   :change change})
+   :delta-temp delta-temp
+   :end-time end-time
+   :time-step time-step
+   :title title})
 
 (def $default-example (make-example :start-cooling-disribution (normal-distribution 1.0 0.5)
 				    :stop-cooling-distribution (normal-distribution 0.5 0.1)
 				    :number-of-bees *number-of-bees*
-				    :change (/ 1 *number-of-bees*)))
+				    :delta-temp (/ 1 *number-of-bees*)
+				    :title "Normally Distributed Default Example"))
 
 (def $fixed-example (make-example :start-cooling-disribution [1.0]
 				  :stop-cooling-distribution [0.5]
 				  :number-of-bees *number-of-bees*
-				  :change (/ 1 *number-of-bees*)))
+				  :delta-temp (/ 1 *number-of-bees*)
+				  :title "Fixed Distribution"))
 (def $pi java.lang.Math/PI)
 
 (defn sin-1 [x]
@@ -65,7 +80,7 @@
   (let [start-cooling-distribution (:start-cooling-disribution example)
 	stop-cooling-distribution (:stop-cooling-distribution example)
 	number-of-bees (:number-of-bees example)
-	change (:change example)
+	delta-temp (:delta-temp example)
 	bees (for [i (range number-of-bees)]
 	       (let [start-cooling (abs (draw start-cooling-distribution))
 		     stop-cooling (min (draw stop-cooling-distribution) (- start-cooling 0.5))
@@ -76,7 +91,7 @@
 		  :stop-cooling stop-cooling
 		  :start-heating start-heating
 		  :stop-heating stop-heating
-		  :change change
+		  :delta-temp delta-temp
 		  :previous-action (atom ::none)}))]
     (swap! *bees* (fn [atom] bees))
     bees))
@@ -91,22 +106,22 @@
 	    (do
 	      (swap! previous-action (fn [action] ::none))
 	      0.0)
-	    (- (:change bee)))
+	    (- (:delta-temp bee)))
 	  (= previous-action-value ::heating)
 	  (if (> temperature (:stop-heating bee))
 	    (do
 	      (swap! previous-action (fn [action] ::none))
 	      0.0)
-	    (:change bee))
+	    (:delta-temp bee))
 	  (= previous-action-value ::none)
 	  (cond (>= temperature (:start-cooling bee))
 		(do
 		  (swap! previous-action (fn [action] ::cooling))
-		  (- (:change bee)))
+		  (- (:delta-temp bee)))
 		(<= temperature (:start-heating bee))
 		(do
 		  (swap! previous-action (fn [action] ::heating))
-		  (:change bee))
+		  (:delta-temp bee))
 		:else 0.0))))
 
 
@@ -121,10 +136,8 @@
        sequence
        (recur (with-offset sequence) (- n 1)))))
 
-(def *time-seq-step-size* 0.1)
-
-(defn time-seq []
-  (range 0 150 *time-seq-step-size*))
+(defn time-seq [example]
+  (range 0 (:end-time example)  (:time-step example)))
 
 (defn delta-t-seq [external-temperature-seq]
   (map - external-temperature-seq (with-offset external-temperature-seq)))
@@ -141,18 +154,22 @@
 		   (result-temperatures next-t new-delta-t-env bees)
 		   []))))))
 
-(defn plot-result [& {time :time, temperature :temperature, title :title,
-		      :or {time (time-seq),
-			   temperature (map external-temperature time),
-			   title "Temperature Plot"}}]
-  (xy-plot time temperature
-	   :title title 
-	   :x-label "Time (min)" :y-label "Temperature (°C)"))
+(defn plot-result [& {:keys {example
+			     times
+			     temperatures
+			     title}}]
+  (let [example (or example $default-example)
+        times (or times (time-seq example))
+        temperatures (or temperatures (map external-temperature times))
+	title (or title (:title example) "Temperature Plot")]
+    (xy-plot times temperatures
+     	     :title title 
+     	     :x-label "Time (min)" :y-label "Temperature (°C)")))
 
-(defn run-example [title example]
-  (let [time (time-seq)
+(defn run-example [example]
+  (let [time (time-seq example)
 	temp (map external-temperature time)
-	plot (plot-result :time time :temperature temp :title title)
+	plot (plot-result :example example :time time :temperature temp)
 	bees (make-bees example)
 	delta-t-env  (delta-t-seq temp)
 	result-temp (result-temperatures 0.0 delta-t-env bees)]
@@ -162,5 +179,5 @@
     (view plot)))
 
 (defn -main [& args]
-  (run-example "Default Example" $default-example)
-  (run-example "Fixed Example" $fixed-example))
+  (run-example $default-example)
+  (run-example $fixed-example))
