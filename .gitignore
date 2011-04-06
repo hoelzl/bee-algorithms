@@ -1,7 +1,8 @@
 *~
 *.jar
 pom.xml
-/lib/
 /classes/
+/lib/
+/target/
 .lein-deps-sum
 .idea/workspace.xml

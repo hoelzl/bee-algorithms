@@ -419,7 +419,7 @@
     ;; (println delta-temp-env)
     ;; (println result-temp)
     (add-lines plot times result-temp)
-    (view plot)))
+    (view plot :width 1200)))
 
 (defn run-experiments
   "Run all experiments by applying run-experiment.
