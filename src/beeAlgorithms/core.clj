@@ -20,7 +20,7 @@
   The total number of steps in an experiment is (* *end-time*
   *number-of-bees*)."}
      
-     *time-step* 0.1)
+     *time-step* 0.05)
 
 (def ^{:doc "The total temperature all bees can generate in a single
   time step."}
@@ -96,7 +96,7 @@
 		 delta-temp]
   (for [i (range number-of-bees)]
     (let [start-cooling (abs (draw start-cooling-distribution))
-	  stop-cooling (min (draw stop-cooling-distribution) (- start-cooling 0.5))
+	  stop-cooling (min (draw stop-cooling-distribution) start-cooling)
 	  start-heating (- start-cooling)
 	  stop-heating (- stop-cooling)]
       {:type ::bee,
@@ -119,7 +119,7 @@
       :or {start-cooling-distribution (normal-distribution 2.0 1.0)
 	   stop-cooling-distribution (normal-distribution 0.0 0.1)
 	   external-temperature (make-external-temperature-fun
-				 *max-external-temperature* accelerated-sin-2)
+				 *max-external-temperature* accelerated-sin-exp)
 	   number-of-bees *number-of-bees*
 	   delta-temp (/ (single-bee-temp-delta) *number-of-bees*)
 	   end-time *end-time*
@@ -139,50 +139,105 @@
    :time-seq (range 0 end-time time-step)
    :title title})
 
-(def $default-example (make-example :start-cooling-distribution (normal-distribution 1.0 0.5)
-				    :stop-cooling-distribution (normal-distribution 0.5 0.25)
-				    :title "Normal Distribution"))
+(def $default-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 0.5)
+		   :stop-cooling-distribution (normal-distribution 0.5 0.25)
+		   :title "Normal Distribution"))
 
-(def $tight-example (make-example :start-cooling-distribution (normal-distribution 1.0 0.25)
-				  :stop-cooling-distribution (normal-distribution 0.5 0.125)
-				  :title "Tight Normal Distribution"))
+(def $tight-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 0.25)
+		   :stop-cooling-distribution (normal-distribution 0.5 0.125)
+		   :title "Tight Normal Distribution"))
 
-(def $loose-example (make-example :start-cooling-distribution (normal-distribution 1.0 1.0)
-				  :stop-cooling-distribution (normal-distribution 0.5 0.5)
-				  :title "Loose Normal Distribution"))
+(def $extra-tight-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 0.025)
+		   :stop-cooling-distribution (normal-distribution 0.5 0.0125)
+		   :title "Extra-Tight Normal Distribution"))
 
-(def $fixed-example (make-example :start-cooling-distribution [1.0]
-				  :stop-cooling-distribution [0.5]
-				  :title "Fixed Distribution"))
+(def $loose-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 1.0)
+		   :stop-cooling-distribution (normal-distribution 0.5 0.5)
+		   :title "Loose Normal Distribution"))
 
-(def $tight-symmetric-random-example (make-example :start-cooling-distribution (normal-distribution 1.0 0.1)
-						   :stop-cooling-distribution (normal-distribution 0.0 0.1)
-						   :title "Tight Symmetric Normal Distribution"))
+(def $fixed-example
+     (make-example :start-cooling-distribution [1.0]
+		   :stop-cooling-distribution [0.5]
+		   :title "Fixed Distribution"))
 
-(def $loose-symmetric-random-example (make-example :start-cooling-distribution (normal-distribution 1.0 0.5)
-						   :stop-cooling-distribution (normal-distribution 0.0 0.5)
-						   :title "Loose Symmetric Normal Distribution"))
+(def $default-examples
+     [$default-example $tight-example $extra-tight-example $loose-example $fixed-example])
 
-(def $symmetric-fixed-example (make-example :start-cooling-distribution [1.0]
-					    :stop-cooling-distribution [0.0]
-					    :title "Fixed Distribution"))
+(def $tight-symmetric-random-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 0.1)
+		   :stop-cooling-distribution (normal-distribution -1.0 0.1)
+		   :title "Tight Symmetric Normal Distribution"))
+
+(def $extra-tight-symmetric-random-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 0.1)
+		   :stop-cooling-distribution (normal-distribution -1.0 0.1)
+		   :title "Extra-Tight Symmetric Normal Distribution"))
+
+(def $loose-symmetric-random-example
+     (make-example :start-cooling-distribution (normal-distribution 1.0 0.5)
+		   :stop-cooling-distribution (normal-distribution -1.0 0.5)
+		   :title "Loose Symmetric Normal Distribution"))
+
+(def $symmetric-fixed-example
+     (make-example :start-cooling-distribution [1.0]
+		   :stop-cooling-distribution [-1.0]
+		   :title "Symmetric Fixed Distribution"))
+
+(def $symmetric-examples
+     [$tight-symmetric-random-example, $extra-tight-symmetric-random-example,
+      $loose-symmetric-random-example, $symmetric-fixed-example])
+      
+
+(def $tight-zero-random-example
+     (make-example :start-cooling-distribution (normal-distribution 0.0 0.1)
+		   :stop-cooling-distribution (normal-distribution 0.0 0.1)
+		   :title "Tight Normal Distribution at 0.0"))
+
+(def $extra-tight-zero-random-example
+     (make-example :start-cooling-distribution (normal-distribution 0.0 0.01)
+		   :stop-cooling-distribution (normal-distribution 0.0 0.01)
+		   :title "Extra-Tight Normal Distribution at 0.0"))
+
+(def $loose-zero-random-example
+     (make-example :start-cooling-distribution (normal-distribution 0.0 0.5)
+		   :stop-cooling-distribution (normal-distribution 0.0 0.5)
+		   :title "Loose Normal Distribution at 0.0"))
+
+(def $zero-fixed-example
+     (make-example :start-cooling-distribution [0.0]
+		   :stop-cooling-distribution [0.0]
+		   :title "Fixed Distribution at 0.0"))
+
+(def $zero-examples
+     [$tight-zero-random-example, $extra-tight-zero-random-example,
+      $loose-zero-random-example, $zero-fixed-example])
 
 (defn bee-action [bee temperature]
   (let [previous-action (:previous-action bee)
 	previous-action-value @previous-action]
-    ;; Using this function bees cannot transition directly from
-    ;; heating to cooling and vice versa.  Not sure whether this is correct.
     (cond (= previous-action-value ::cooling)
 	  (if (< temperature (:stop-cooling bee))
-	    (do
-	      (swap! previous-action (fn [action] ::none))
-	      0.0)
+	    (if (<= temperature (:start-heating bee))
+	      (do
+		(swap! previous-action (fn [action] ::heating))
+		(:delta-temp bee))
+	      (do
+		(swap! previous-action (fn [action] ::none))
+		0.0))
 	    (- (:delta-temp bee)))
 	  (= previous-action-value ::heating)
 	  (if (> temperature (:stop-heating bee))
-	    (do
-	      (swap! previous-action (fn [action] ::none))
-	      0.0)
+	    (if (>= temperature (:start-cooling bee))
+	      (do
+		(swap! previous-action (fn [action] ::cooling))
+		(- (:delta-temp bee)))
+	      (do
+		(swap! previous-action (fn [action] ::none))
+		0.0))
 	    (:delta-temp bee))
 	  (= previous-action-value ::none)
 	  (cond (>= temperature (:start-cooling bee))
@@ -245,9 +300,10 @@
     (add-lines plot times result-temp)
     (view plot)))
 
+(defn run-examples [examples]
+  (map run-example examples))
+
 (defn -main [& args]
-  (run-example $default-example)
-  (run-example $tight-example)
-  (run-example $loose-example)
-  (run-example $fixed-example))
+  (run-examples $default-examples))
+
 
