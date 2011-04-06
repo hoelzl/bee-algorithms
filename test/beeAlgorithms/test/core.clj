@@ -2,5 +2,6 @@
   (:use [beeAlgorithms.core])
   (:use [clojure.test]))
 
-(deftest replace-me ;; FIXME: write
-  (is false "No tests have been written."))
+(deftest make-example-test 
+  (is (= (make-example)
+    {}) "Testing make-example."))
