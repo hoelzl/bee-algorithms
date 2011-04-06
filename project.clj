@@ -1,4 +1,4 @@
-(defproject test-01 "0.1.0-SNAPSHOT"
+(defproject bee-algorithms "0.1.0"
   :description "A demonstration of some bee algorithms."
   :dependencies [[org.clojure/clojure "1.2.1"]
 		 [org.clojure/clojure-contrib "1.2.0"]

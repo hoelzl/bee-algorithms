@@ -138,6 +138,8 @@
        :previous-action (atom ::none)})))
 
 (defn make-experiment
+  "Returns a new experiment.
+  "
   [& {:keys [number-of-bees
 	     start-cooling-distribution
 	     stop-cooling-distribution
@@ -348,11 +350,13 @@
   [inputs]
   (map - inputs (duplicate-initial-element inputs)))
 
-(defn bee-delta [temp env-delta control-delta bees]
-  (let [bee-delta (bee-actions bees (+ temp control-delta))]
-    (+ temp env-delta bee-delta)))
-
 (defn controlled-seq
+  "Returns the sequence of temperatures that results when initial-temp
+  is influenced by env-deltas and controlled by bees.  The
+  transmission of the true environment temperature to the bees can be
+  delayed by delay steps.  In other words, if (> delay 0), the bees
+  try to control the environment using outdated measurements.
+  "
   ([initial-temp env-deltas bees]
      (controlled-seq 0 initial-temp env-deltas bees))
   ([delay initial-temp env-deltas bees]
@@ -385,21 +389,29 @@
 ;;         delta-temp-env  (delta-seq (map (:external-temperature experiment) times))]
 ;;     (controlled-seq 0.0 delta-temp-env bees)))
 
-(defn plot-result [& {:keys [experiment
-                             times
-                             temperatures
-                             title]}]
+(defn plot-environment-temp
+  "Returns a plot containing the title of the experiment, the
+  environment temperature and labels for the axes.
+  "
+  [experiment]
   (let [experiment (or experiment $default-experiment)
-        times (or times (:time-seq experiment))
-        temperatures (or temperatures (map (:external-temperature experiment) times))
-        title (or title (:title experiment))]
+        times (:time-seq experiment)
+        temperatures (map (:external-temperature experiment) times)
+        title (:title experiment)]
     (xy-plot times temperatures
      	     :title title 
      	     :x-label "Time (min)" :y-label "Temperature (°C)")))
 
-(defn run-experiment [experiment & {:keys [modify] :or {modify {}}}]
+(defn run-experiment
+  "Runs an experiment and shows the resulting plot.  If the modify
+  parameter is supplied the experiment is modified by adding the
+  key/value pairs of modify before the experiment is executed.  Beware
+  that modification does not re-create the bees even if some parameter
+  influencing their properties has changed.
+  "
+  [experiment & {:keys [modify] :or {modify {}}}]
   (let [experiment (conj experiment modify)
-	plot (plot-result :experiment experiment)
+	plot (plot-environment-temp experiment)
         bees (:bees experiment)
         times (:time-seq experiment)
         delta-temp-env  (delta-seq (map (:external-temperature experiment) times))
@@ -409,7 +421,10 @@
     (add-lines plot times result-temp)
     (view plot)))
 
-(defn run-experiments [experiments & {:keys [modify] :or {modify {}}}]
+(defn run-experiments
+  "Run all experiments by applying run-experiment.
+  "
+  [experiments & {:keys [modify] :or {modify {}}}]
   (map #(run-experiment % :modify modify) experiments))
 
 (defn -main [& args]
