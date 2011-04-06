@@ -37,6 +37,10 @@
 
      *max-external-temperature* 5.0)
 
+;;; Forward declaration so that we have all parameters visible here.
+(declare ^{:doc "The default action performed by bees."}
+	 *default-bee-action-fun*)
+
 (def ^{:doc "Well, π, obviously."}
      $pi java.lang.Math/PI)
 
@@ -107,6 +111,59 @@
   []
   (* *total-bee-temp-delta* *time-step*))
 
+(defn simple-hysterisis-bee-action
+  "Selects the action performed by a bee at each simulation step.
+
+  The action for each step depends on the previous action: if the bee
+  was previously heating or cooling and the current temperature does
+  not indicate that this should stop (i.e., if it is below
+  stop-cooling or above stop-heating) we continue with the previous
+  action.  This implements a simple kind of hysterisis, except when
+  the start and stop temperatures are equal.  If the bee was
+  previously doing nothing and the temperature is above start-cooling
+  the bee starts heating, if the temperature is below start-heating it
+  starts heating.  Otherwise it continues to do nothing.
+
+  Note that if (<= start-cooling temperature start-heating) the bee
+  prefers cooling over heating; for bees created with make-bees such a
+  specification can only happen when
+  (= start-cooling temperature end-cooling 0.0).
+  "
+  [bee temperature]
+  (let [previous-action (:previous-action bee)
+	previous-action-value @previous-action]
+    (cond (= previous-action-value ::cooling)
+	  (if (< temperature (:stop-cooling bee))
+	    (if (<= temperature (:start-heating bee))
+	      (do
+		(swap! previous-action (fn [action] ::heating))
+		(:delta-temp bee))
+	      (do
+		(swap! previous-action (fn [action] ::none))
+		0.0))
+	    (- (:delta-temp bee)))
+	  (= previous-action-value ::heating)
+	  (if (> temperature (:stop-heating bee))
+	    (if (>= temperature (:start-cooling bee))
+	      (do
+		(swap! previous-action (fn [action] ::cooling))
+		(- (:delta-temp bee)))
+	      (do
+		(swap! previous-action (fn [action] ::none))
+		0.0))
+	    (:delta-temp bee))
+	  (= previous-action-value ::none)
+	  (cond (>= temperature (:start-cooling bee))
+		(do
+		  (swap! previous-action (fn [action] ::cooling))
+		  (- (:delta-temp bee)))
+		(<= temperature (:start-heating bee))
+		(do
+		  (swap! previous-action (fn [action] ::heating))
+		  (:delta-temp bee))
+		:else 0.0))))
+
+(def *default-bee-action-fun* simple-hysterisis-bee-action)
 
 (defn make-bees
   "Return a lazy sequence of number-of-bees bees with values for
@@ -121,20 +178,19 @@
   [number-of-bees
    start-cooling-distribution
    stop-cooling-distribution
-   delta-temp-distribution]
+   delta-temp-distribution
+   action-fun-distribution]
   (for [i (range number-of-bees)]
     (let [start-cooling (abs (draw start-cooling-distribution))
-	  stop-cooling (min (draw stop-cooling-distribution) start-cooling)
-	  delta-temp (draw delta-temp-distribution)
-	  start-heating (- start-cooling)
-	  stop-heating (- stop-cooling)]
+	  stop-cooling (min (draw stop-cooling-distribution) start-cooling)]
       {:type ::bee
        :index i
        :start-cooling start-cooling
        :stop-cooling stop-cooling
-       :start-heating start-heating
-       :stop-heating stop-heating
-       :delta-temp delta-temp
+       :start-heating (- start-cooling)
+       :stop-heating (- stop-cooling)
+       :delta-temp (draw delta-temp-distribution)
+       :action-fun (draw action-fun-distribution)
        :previous-action (atom ::none)})))
 
 (defn make-experiment
@@ -144,6 +200,7 @@
 	     start-cooling-distribution
 	     stop-cooling-distribution
 	     delta-temp-distribution
+	     bee-action-fun-distribution
 	     external-temperature
 	     delay
 	     end-time
@@ -152,7 +209,9 @@
       :or {number-of-bees *number-of-bees*
 	   start-cooling-distribution (normal-distribution 2.0 1.0)
 	   stop-cooling-distribution (normal-distribution 0.0 0.1)
-	   delta-temp-distribution [(/ (single-bee-temp-delta-per-step) *number-of-bees*)]
+	   delta-temp-distribution [(/ (single-bee-temp-delta-per-step)
+				       *number-of-bees*)]
+	   bee-action-fun-distribution [*default-bee-action-fun*]
 	   external-temperature (make-external-temperature-fun
 				 *max-external-temperature* accelerated-sin-15)
 	   delay 0
@@ -166,7 +225,8 @@
    :bees (make-bees number-of-bees
 		    start-cooling-distribution
 		    stop-cooling-distribution
-		    delta-temp-distribution)
+		    delta-temp-distribution
+		    bee-action-fun-distribution)
    :delta-temp-distribution delta-temp-distribution
    :delay delay
    :end-time end-time
@@ -268,70 +328,16 @@
 
 
 (def $default-experiments
-     [$default-experiment $loose-experiment
-      $fixed-experiment
-      $loose-symmetric-random-experiment $symmetric-fixed-experiment
-      $loose-zero-random-experiment $zero-fixed-experiment])
+     [$fixed-experiment
+      $default-experiment $loose-experiment
+      $symmetric-fixed-experiment $loose-symmetric-random-experiment
+      $zero-fixed-experiment $loose-zero-random-experiment])
 
-
-(defn bee-action
-  "Selects the action performed by a bee at each simulation step.
-
-  The action for each step depends on the previous action: if the bee
-  was previously heating or cooling and the current temperature does
-  not indicate that this should stop (i.e., if it is below
-  stop-cooling or above stop-heating) we continue with the previous
-  action.  This implements a simple kind of hysterisis, except when
-  the start and stop temperatures are equal.  If the bee was
-  previously doing nothing and the temperature is above start-cooling
-  the bee starts heating, if the temperature is below start-heating it
-  starts heating.  Otherwise it continues to do nothing.
-
-  Note that if (<= start-cooling temperature start-heating) the bee
-  prefers cooling over heating; for bees created with make-bees such a
-  specification can only happen when
-  (= start-cooling temperature end-cooling 0.0).
-  "
-  [bee temperature]
-  (let [previous-action (:previous-action bee)
-	previous-action-value @previous-action]
-    (cond (= previous-action-value ::cooling)
-	  (if (< temperature (:stop-cooling bee))
-	    (if (<= temperature (:start-heating bee))
-	      (do
-		(swap! previous-action (fn [action] ::heating))
-		(:delta-temp bee))
-	      (do
-		(swap! previous-action (fn [action] ::none))
-		0.0))
-	    (- (:delta-temp bee)))
-	  (= previous-action-value ::heating)
-	  (if (> temperature (:stop-heating bee))
-	    (if (>= temperature (:start-cooling bee))
-	      (do
-		(swap! previous-action (fn [action] ::cooling))
-		(- (:delta-temp bee)))
-	      (do
-		(swap! previous-action (fn [action] ::none))
-		0.0))
-	    (:delta-temp bee))
-	  (= previous-action-value ::none)
-	  (cond (>= temperature (:start-cooling bee))
-		(do
-		  (swap! previous-action (fn [action] ::cooling))
-		  (- (:delta-temp bee)))
-		(<= temperature (:start-heating bee))
-		(do
-		  (swap! previous-action (fn [action] ::heating))
-		  (:delta-temp bee))
-		:else 0.0))))
-
-
-(defn bee-actions
+(defn perform-bee-actions
   "Perform bee-action at temperature for all bees.
   "
   [bees temperature]
-  (sum (map #(bee-action % temperature) bees)))
+  (sum (map #((:action-fun %) % temperature) bees)))
 
 (defn duplicate-initial-element
   "Prepend the first element to sequence once or n times.
@@ -368,7 +374,7 @@
 	    delayed-bee-deltas (make-queue delay 0.0)]
        (if (seq env-deltas)
 	 (let [env-delta (first env-deltas)
-	       bee-delta (bee-actions bees delayed-env-temp)
+	       bee-delta (perform-bee-actions bees delayed-env-temp)
 	       new-env-temp (+ env-temp env-delta bee-delta)
 	       new-delayed-bee-deltas (conj delayed-bee-deltas bee-delta)
 	       new-delayed-env-temp (+ delayed-env-temp
@@ -425,7 +431,8 @@
   "Run all experiments by applying run-experiment.
   "
   [experiments & {:keys [modify] :or {modify {}}}]
-  (map #(run-experiment % :modify modify) experiments))
+  (map #(run-experiment % :modify modify)
+       (reverse experiments)))
 
 (defn -main [& args]
   (run-experiments $default-experiments))
