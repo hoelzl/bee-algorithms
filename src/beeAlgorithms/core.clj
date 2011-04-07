@@ -17,8 +17,9 @@
 
 (def ^{:doc "The size in which we increment the time.
 
-  The total number of steps in an experiment is (* *end-time*
-  *number-of-bees*)."}
+  This also determines which percentage of the *total-bee-temp-delta*
+  the bees apply in a single step.  The total number of steps in an
+  experiment is (* *end-time* *number-of-bees*)."}
      
      *time-step* 0.1)
 
@@ -40,6 +41,9 @@
 ;;; Forward declaration so that we have all parameters visible here.
 (declare ^{:doc "The default action performed by bees."}
 	 *default-bee-action-fun*)
+
+(def ^{:doc "The width of the generated plots."}
+     *plot-width* 1200)
 
 (def ^{:doc "Well, π, obviously."}
      $pi java.lang.Math/PI)
@@ -271,8 +275,8 @@
 
 (def $tight-symmetric-random-experiment
      (make-experiment
-      :start-cooling-distribution (normal-distribution 1.0 0.1)
-      :stop-cooling-distribution (normal-distribution -1.0 0.1)
+      :start-cooling-distribution (normal-distribution 1.0 0.2)
+      :stop-cooling-distribution (normal-distribution -1.0 0.2)
       :title "Tight Symmetric Normal Distribution"))
 
 (def $extra-tight-symmetric-random-experiment
@@ -300,14 +304,14 @@
 
 (def $tight-zero-random-experiment
      (make-experiment
-      :start-cooling-distribution (normal-distribution 0.0 0.1)
-      :stop-cooling-distribution (normal-distribution 0.0 0.1)
+      :start-cooling-distribution (normal-distribution 0.0 0.2)
+      :stop-cooling-distribution (normal-distribution 0.0 0.2)
       :title "Tight Normal Distribution at 0.0"))
 
 (def $extra-tight-zero-random-experiment
      (make-experiment
-      :start-cooling-distribution (normal-distribution 0.0 0.01)
-      :stop-cooling-distribution (normal-distribution 0.0 0.01)
+      :start-cooling-distribution (normal-distribution 0.0 0.1)
+      :stop-cooling-distribution (normal-distribution 0.0 0.1)
       :title "Extra-Tight Normal Distribution at 0.0"))
 
 (def $loose-zero-random-experiment
@@ -399,14 +403,25 @@
   "Returns a plot containing the title of the experiment, the
   environment temperature and labels for the axes.
   "
-  [experiment]
+  [experiment & {:keys [title] :or {title false}}]
   (let [experiment (or experiment $default-experiment)
         times (:time-seq experiment)
         temperatures (map (:external-temperature experiment) times)
-        title (:title experiment)]
+        title (or title (:title experiment))]
     (xy-plot times temperatures
      	     :title title 
      	     :x-label "Time (min)" :y-label "Temperature (°C)")))
+
+(defn add-experiment-plot
+  "Adds an experiment to an existing plot."
+  [experiment plot]
+  (println "Adding plot for" (:title experiment))
+
+  (let [bees (:bees experiment)
+        times (:time-seq experiment)
+        delta-temp-env  (delta-seq (map (:external-temperature experiment) times))
+        result-temp (controlled-seq (:delay experiment) 0.0 delta-temp-env bees)]
+    (add-lines plot times result-temp)))
 
 (defn run-experiment
   "Runs an experiment and shows the resulting plot.  If the modify
@@ -417,22 +432,48 @@
   "
   [experiment & {:keys [modify] :or {modify {}}}]
   (let [experiment (conj experiment modify)
-	plot (plot-environment-temp experiment)
-        bees (:bees experiment)
-        times (:time-seq experiment)
-        delta-temp-env  (delta-seq (map (:external-temperature experiment) times))
-        result-temp (controlled-seq (:delay experiment) 0.0 delta-temp-env bees)]
-    ;; (println delta-temp-env)
-    ;; (println result-temp)
-    (add-lines plot times result-temp)
-    (view plot :width 1200)))
+	plot (plot-environment-temp experiment)]
+    (add-experiment-plot experiment plot)
+    (view plot :width *plot-width*)))
 
 (defn run-experiments
   "Run all experiments by applying run-experiment.
   "
-  [experiments & {:keys [modify] :or {modify {}}}]
-  (map #(run-experiment % :modify modify)
-       (reverse experiments)))
+  [experiments & {:keys [modify, title, single-plot?]
+		  :or {modify {}
+		       title false
+		       single-plot? false}}]
+  (let [experiments (map #(conj % modify) experiments)]
+    (if (and (seq experiments) single-plot?)
+      (let [plot (plot-environment-temp (first experiments) :title title)]
+	(dorun (map #(add-experiment-plot % plot) experiments))
+	(view plot :width *plot-width*))
+      (map #(run-experiment %)
+	   (reverse experiments)))))
+
+(defn single-plot-1 []
+  (run-experiments [$fixed-experiment
+		    $default-experiment
+		    $loose-experiment]
+		   :single-plot? true
+		   :title "Simple Hysterisis"))
+
+(defn single-plot-2 []
+  (run-experiments [$symmetric-fixed-experiment
+		    $tight-symmetric-random-experiment
+		    $loose-symmetric-random-experiment]
+		   :single-plot? true
+		   :title "Symmetric (-1, 1)"))
+
+(defn single-plot-3 []
+  (run-experiments [$zero-fixed-experiment
+		    $tight-zero-random-experiment
+		    $loose-zero-random-experiment]
+		   :single-plot? true
+		   :title "No Hysterisis (0, 0)"))
 
 (defn -main [& args]
-  (run-experiments $default-experiments))
+  (run-experiments $default-experiments)
+  (single-plot-3)
+  (single-plot-2)
+  (single-plot-1))
